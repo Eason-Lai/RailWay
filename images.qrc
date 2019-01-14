@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/new/image">
+        <file>background.png</file>
+        <file>huoche.png</file>
+    </qresource>
+</RCC>
