@@ -112,14 +112,14 @@ void MainWindow::getData(int n)
     QDateTime dt ;
     if ( n >=  24 )
     {
-        Data::current_time = Data::current_time.addDays(int(n/24));
+        Data::next_time = Data::current_time.addDays(int(n/24));
     }
     n = n % 24;
     Data::next_time = Data::current_time.addSecs(n*3600);
     Data::nexttime = Data::next_time.toString("yyyy-MM-dd hh:mm:ss");
-    qltime->setText(Data::qtime);
+    qltime->setText(Data::nexttime);
     QSqlQuery query;
-    query.exec(QString("update data set time ='%1'").arg(Data::qtime));
+    //query.exec(QString("update data set time ='%1'").arg(Data::nexttime));
 
     bg->repaint();
 }

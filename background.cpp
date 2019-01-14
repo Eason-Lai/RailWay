@@ -3,6 +3,8 @@
 #include <QSequentialAnimationGroup>
 #include <qdatetime.h>
 
+#include <QParallelAnimationGroup>
+#include <QPauseAnimation>
 #include <iostream>
 using namespace std;
 
@@ -39,8 +41,8 @@ void Background::repaint()
     QPixmap pix;
     QMatrix matrix;
     pix.load(":/new/image/huoche.png");//图片的位置
-     QSequentialAnimationGroup *pPosGroup = new QSequentialAnimationGroup(this);
-
+    //QSequentialAnimationGroup *pPosGroup = new QSequentialAnimationGroup(this);
+    QParallelAnimationGroup *pPosGroup2 = new QParallelAnimationGroup(this);
     int c1,c2,cost;
     int startx,starty,endx,endy;
     QDateTime qdt1,qdt2;
@@ -49,7 +51,7 @@ void Background::repaint()
     qdt1 = Data::current_time;
     //cout<<"timen="<<timen<<endl;
     //数据库查询
-    QSqlQuery query(QString("select * from train where time1 <= '%1' and state = '等待' order by time1 asc").arg(Data::qtime));
+    QSqlQuery query(QString("select * from train where time1 <= '%1' and state = '等待' order by time1 asc").arg(Data::nexttime));
     while(query.next())
     {
         //导出数据库数据
@@ -59,7 +61,7 @@ void Background::repaint()
         cost = query.value(5).toInt();
         qdt2= QDateTime::fromString(qstime,"yyyy-MM-dd hh:mm:ss");
         //cout<<"timex="<<timex<<endl;
-        timed = qdt2.secsTo(qdt1)/7.2;
+        timed = qdt1.secsTo(qdt2)/7.2;
         cout<<"timed="<<timed<<endl;
         timen = timex;
 
@@ -83,15 +85,18 @@ void Background::repaint()
         l1->setPixmap(pix.transformed(matrix, Qt::SmoothTransformation));
         matrix.reset();
 
-
+        QSequentialAnimationGroup *pPosGroup = new QSequentialAnimationGroup(this);
         QPropertyAnimation *pPosAnimation1 = new QPropertyAnimation(l1, "pos");
         pPosAnimation1->setDuration(cost);
         pPosAnimation1->setStartValue(QPoint(startx, starty));
         pPosAnimation1->setEndValue(QPoint(endx, endy));
         pPosAnimation1->setEasingCurve(QEasingCurve::InOutQuad);
 
-        pPosGroup->addPause(timed);
+        QPauseAnimation *pp = new QPauseAnimation(this);
+        pp->setDuration(timed*5);
+        pPosGroup->addAnimation(pp);
         pPosGroup->addAnimation(pPosAnimation1);
+        pPosGroup2->addAnimation(pPosGroup);
 
         connect(pPosAnimation1, &QPropertyAnimation::stateChanged, [=] {
             //要处理的函数
@@ -109,7 +114,8 @@ void Background::repaint()
             delete l1;
        });
     }
-    pPosGroup->start();
+
+    pPosGroup2->start();
 
     Data::current_time = Data::next_time;
     Data::qtime = Data::nexttime;
